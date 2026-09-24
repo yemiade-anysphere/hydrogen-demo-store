@@ -42,6 +42,14 @@ npm run build
 npm run dev
 ```
 
+## Demo tickets (Grok Bot team Show)
+
+This repo is the storefront SoR (`yemiade-anysphere/hydrogen-demo-store`). See [DEMO.md](DEMO.md) for Path A / Path B pastes.
+
+- [TICKET-1042](tickets/TICKET-1042-checkout-flaky.md) — Maple Grove Gifts, discount flaky on multi-line carts (`DEMO BUG (TICKET-1042)`)
+- [TICKET-1105](tickets/TICKET-1105-quantity-update-flaky.md) — Cedar & Twine Home, quantity update flaky on multi-line carts (`DEMO BUG (TICKET-1105)`)
+
+
 ## Setup for using Customer Account API (`/account` section)
 
 ### Setup public domain using ngrok

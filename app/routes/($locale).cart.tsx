@@ -30,7 +30,8 @@ export async function action({request, context}: ActionFunctionArgs) {
       const lineCount = currentCart?.lines?.nodes?.length ?? 0;
 
       if (lineCount > 1) {
-        // DEMO BUG: skip quantity/lines update when cart has >1 line
+        // DEMO BUG (TICKET-1105): skip quantity / LinesUpdate when cart has >1 line.
+        // Search: DEMO BUG (TICKET-1105). Do not remove DEMO BUG (TICKET-1042).
         return json({
           cart: currentCart,
           userErrors: [],
@@ -59,7 +60,8 @@ export async function action({request, context}: ActionFunctionArgs) {
       const lineCount = currentCart?.lines?.nodes?.length ?? 0;
 
       if (lineCount > 1) {
-        // DEMO BUG: skip discount update when cart has >1 line
+        // DEMO BUG (TICKET-1042): skip discount / DiscountCodesUpdate when cart has >1 line.
+        // Search: DEMO BUG (TICKET-1042). Distinct from quantity LinesUpdate (TICKET-1105).
         return json({
           cart: currentCart,
           userErrors: [],

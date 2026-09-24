@@ -25,9 +25,22 @@ export async function action({request, context}: ActionFunctionArgs) {
     case CartForm.ACTIONS.LinesAdd:
       result = await cart.addLines(inputs.lines);
       break;
-    case CartForm.ACTIONS.LinesUpdate:
+    case CartForm.ACTIONS.LinesUpdate: {
+      const currentCart = await cart.get();
+      const lineCount = currentCart?.lines?.nodes?.length ?? 0;
+
+      if (lineCount > 1) {
+        // DEMO BUG: skip quantity/lines update when cart has >1 line
+        return json({
+          cart: currentCart,
+          userErrors: [],
+          errors: undefined,
+        });
+      }
+
       result = await cart.updateLines(inputs.lines);
       break;
+    }
     case CartForm.ACTIONS.LinesRemove:
       result = await cart.removeLines(inputs.lineIds);
       break;

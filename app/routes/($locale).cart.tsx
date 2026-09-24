@@ -7,6 +7,7 @@ import {
 } from '@shopify/remix-oxygen';
 import {CartForm, type CartQueryDataReturn, Analytics} from '@shopify/hydrogen';
 
+import {applyDiscountCodesUpdate} from '~/lib/cart-discounts';
 import {isLocalPath} from '~/lib/utils';
 import {Cart} from '~/components/Cart';
 
@@ -42,19 +43,10 @@ export async function action({request, context}: ActionFunctionArgs) {
       // Combine discount codes already applied on cart
       discountCodes.push(...inputs.discountCodes);
 
-      const currentCart = await cart.get();
-      const lineCount = currentCart?.lines?.nodes?.length ?? 0;
-
-      if (lineCount > 1) {
-        // DEMO BUG: skip discount update when cart has >1 line
-        return json({
-          cart: currentCart,
-          userErrors: [],
-          errors: undefined,
-        });
-      }
-
-      result = await cart.updateDiscountCodes(discountCodes);
+      result = await applyDiscountCodesUpdate(
+        (codes) => cart.updateDiscountCodes(codes),
+        discountCodes,
+      );
       break;
     case CartForm.ACTIONS.BuyerIdentityUpdate:
       result = await cart.updateBuyerIdentity({

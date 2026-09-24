@@ -42,6 +42,18 @@ export async function action({request, context}: ActionFunctionArgs) {
       // Combine discount codes already applied on cart
       discountCodes.push(...inputs.discountCodes);
 
+      const currentCart = await cart.get();
+      const lineCount = currentCart?.lines?.nodes?.length ?? 0;
+
+      if (lineCount > 1) {
+        // DEMO BUG: skip discount update when cart has >1 line
+        return json({
+          cart: currentCart,
+          userErrors: [],
+          errors: undefined,
+        });
+      }
+
       result = await cart.updateDiscountCodes(discountCodes);
       break;
     case CartForm.ACTIONS.BuyerIdentityUpdate:

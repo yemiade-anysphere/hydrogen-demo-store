@@ -4,38 +4,30 @@
 **Storefront SoR:** [yemiade-anysphere/hydrogen-demo-store](https://github.com/yemiade-anysphere/hydrogen-demo-store)
 **No CRM ids.** Do not invent HubSpot/Zendesk/Salesforce ticket numbers or real customer names.
 
-## Intake
+## Symptoms
 
-After a **cart drawer / AJAX cart plugin** update on shared hosting, changing line quantity on `/cart` is flaky when the cart already has **more than one line**.
+After a **cart drawer / AJAX cart plugin** update on shared hosting, changing line quantity on `/cart` is ignored when the cart already has **more than one line**.
 
-- The UI often looks updated (optimistic qty stepper).
-- Cart totals and checkout still show the **old quantity**.
+- The UI often looks updated (optimistic qty stepper via `UpdateCartButton` in `app/components/Cart.tsx`).
+- Cart JSON, totals, and checkout still show the **old quantity**.
 - Single-line carts usually work.
 - Two units of one SKU is not the repro — need **2+ distinct lines**.
 
-## Support (L2)
+## Root cause
 
-Check the plugin **and** escalate storefront code if the action is dropping the mutation.
+`CartForm.ACTIONS.LinesUpdate` in `app/routes/($locale).cart.tsx` fetched the current cart and returned early when `lineCount > 1`, so `cart.updateLines` never ran. Search: `DEMO BUG (TICKET-1105)`.
 
-1. Confirm shared-hosting plugin/theme conflict: disable or roll back the cart-drawer / AJAX cart plugin and retest `/cart` qty change with 2+ lines.
-2. If the mismatch survives (UI vs totals/checkout), it is not plugin-only.
-3. Escalate **LinesUpdate** in `app/routes/($locale).cart.tsx`. Search `DEMO BUG (TICKET-1105)`.
-4. Do **not** remove `DEMO BUG (TICKET-1042)` (discount short-circuit). That is a separate Maple Grove Gifts fixture.
+This is **not** TICKET-1042 (`DiscountCodesUpdate` / Maple Grove Gifts). Leave that early return in place.
 
-Triage write-up: `demo-artifacts/triage-1105.md`.
+## Fix
 
-## Eng (in-repo)
+Always call `cart.updateLines(inputs.lines)` for LinesUpdate. Line count does not gate the mutation. Do **not** remove `DEMO BUG (TICKET-1042)`.
 
-`CartForm.ACTIONS.LinesUpdate` fetches the current cart and returns early when `lineCount > 1`, so `cart.updateLines` never runs. Quantity is ignored for mixed baskets.
+## Verify
 
-Fix (when asked to ship the code change, not this fixture PR): always call `cart.updateLines(inputs.lines)`. Leave the TICKET-1042 discount early return in place.
-
-PR pack for that fix: `demo-artifacts/github-pr-pack-1105.md`.
-
-## Verify (after a real fix)
-
-1. Add two different products so the cart has 2+ line items.
-2. Open `/cart` and change quantity on one line.
+1. Add two different products so the cart has 2+ line items (not quantity 2 of one SKU).
+2. Open `/cart` and change quantity on one line (increase or decrease).
 3. Confirm quantity **and** subtotal/checkout update (not just the stepper).
 4. Repeat with a single-line cart — still updates.
 5. Confirm discount DEMO BUG (TICKET-1042) is still present.
+6. Run unit coverage: `npm run test:unit`.

@@ -7,6 +7,7 @@ import {
 } from '@shopify/remix-oxygen';
 import {CartForm, type CartQueryDataReturn, Analytics} from '@shopify/hydrogen';
 
+import {applyLinesUpdate} from '~/lib/cart-lines';
 import {isLocalPath} from '~/lib/utils';
 import {Cart} from '~/components/Cart';
 
@@ -25,23 +26,12 @@ export async function action({request, context}: ActionFunctionArgs) {
     case CartForm.ACTIONS.LinesAdd:
       result = await cart.addLines(inputs.lines);
       break;
-    case CartForm.ACTIONS.LinesUpdate: {
-      const currentCart = await cart.get();
-      const lineCount = currentCart?.lines?.nodes?.length ?? 0;
-
-      if (lineCount > 1) {
-        // DEMO BUG (TICKET-1105): skip quantity / LinesUpdate when cart has >1 line.
-        // Search: DEMO BUG (TICKET-1105). Do not remove DEMO BUG (TICKET-1042).
-        return json({
-          cart: currentCart,
-          userErrors: [],
-          errors: undefined,
-        });
-      }
-
-      result = await cart.updateLines(inputs.lines);
+    case CartForm.ACTIONS.LinesUpdate:
+      result = await applyLinesUpdate(
+        (lines) => cart.updateLines(lines),
+        inputs.lines,
+      );
       break;
-    }
     case CartForm.ACTIONS.LinesRemove:
       result = await cart.removeLines(inputs.lineIds);
       break;
